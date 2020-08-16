@@ -6,6 +6,7 @@ export default function Rows(props) {
       {props.row.map((pixel, index) => (
         <div
           className="pixels"
+          key={index}
           style={{ backgroundColor: pixel }}
           onClick={() => props.update(index, props.rownumber)}
         />
