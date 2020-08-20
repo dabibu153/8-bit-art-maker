@@ -9,6 +9,9 @@ export default function Rows(props) {
           key={index}
           style={{ backgroundColor: pixel }}
           onClick={() => props.update(index, props.rownumber)}
+          onMouseOver={() =>
+            props.dragging && props.update(index, props.rownumber)
+          }
         />
       ))}
     </div>
