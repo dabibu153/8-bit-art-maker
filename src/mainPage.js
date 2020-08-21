@@ -121,21 +121,32 @@ function MainPage(props) {
   const canvasDom = useRef(null);
 
   return (
-    <div>
-      <div className="greeting">hello there, {userName}</div>
+    <div id="mainPage" className="mainPage">
+      <div className="topRow">
+        <div className="headingtop">---hello there---</div>
+        <div className="headingbottom">{userName}</div>
+      </div>
       <div className="middleRow">
         <div className="firstColumn">
           <div className="canvasColorPicker">
+            <p className="ccpth">
+              Use this to choose base color for your canvas
+            </p>
             <BlockPicker
               color={color}
               onChange={(color) => setCanvasColor(color.hex)}
             />
+            <p className="ccpth">warning: using this WILL reset your canvas</p>
           </div>
           <div className="colorpicker">
+            <p className="ccpth">
+              Use this to choose the color u want to paint with
+            </p>
             <CirclePicker
               color={color}
               onChangeComplete={(color) => setColor(color.hex)}
             />
+            <p className="ccpth">and no, this one doesn't reset your canvas</p>
           </div>
         </div>
         <div ref={canvasDom} className="secondColumn">
@@ -143,6 +154,7 @@ function MainPage(props) {
         </div>
         <div className="thirdColumn">
           <div className="preDefinedDesigns">
+            <p className="ccpth">PRE-made designs for u to use</p>
             <ul>
               <li>
                 <button>Design 1</button>
@@ -162,6 +174,7 @@ function MainPage(props) {
             </ul>
           </div>
           <div className="userDefinedDesigns">
+            <p className="ccpth">here is the stuff you Saved !</p>
             <ul>
               {canvasList.map((canvasData, index) => (
                 <li>
@@ -181,10 +194,14 @@ function MainPage(props) {
       </div>
       <div className="bottomContent">
         <div className="saveandDownloadCanvas">
+          <p className="ccpth extra">save and download your creation : </p>
+
           <button onClick={() => handleCanvasSave()}>SAVE!</button>
           <button onClick={() => handleCanvasDownload()}>DOWNLOAD!</button>
         </div>
         <div className="canvasEdits">
+          <p className="ccpth extra">mess around with the canvas : </p>
+
           <button onClick={() => rotateAntiClockwise()}>Anticlockwise</button>
           <button onClick={() => rotateClockwise()}>clockwise</button>
           <button onClick={() => horizontalFlip()}>Horizontal Flip</button>
