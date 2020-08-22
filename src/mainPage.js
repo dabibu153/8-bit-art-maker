@@ -5,6 +5,8 @@ import { CirclePicker, BlockPicker } from "react-color";
 import axios from "axios";
 import domtoimage from "dom-to-image";
 import { saveAs } from "file-saver";
+import ImageUploader from "react-images-upload";
+import { resize } from "resize-image";
 
 function MainPage(props) {
   const makeGrid = (size) => {
@@ -17,6 +19,8 @@ function MainPage(props) {
   const [color, setColor] = useState("#61daf9");
   const [userName, setUserName] = useState("");
   const [canvasList, setcanvasList] = useState([]);
+  const [image, setimage] = useState(null);
+  const imageElm = useRef(null);
 
   useEffect(() => {
     refreshData();
@@ -107,6 +111,9 @@ function MainPage(props) {
     });
   };
 
+  useEffect(() => {
+    console.log(image);
+  }, [image]);
   const handleCanvasDownload = () => {
     if (!canvasDom.current) {
       return 0;
@@ -119,7 +126,48 @@ function MainPage(props) {
   };
 
   const canvasDom = useRef(null);
+  const onUpload = (picture) => {
+    setimage(picture[0]);
+    // setimage(URL.createObjectURL(picture[0]));
+  };
 
+  useEffect(() => {
+    if (imageElm && image) {
+      var file = image;
+      debugger;
+      var img = document.createElement("img");
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      var canvas = document.createElement("canvas");
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+
+      var MAX_WIDTH = 30;
+      var MAX_HEIGHT = 30;
+      var width = img.width;
+      var height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      console.log(ctx);
+    }
+  }, [image, imageElm]);
   return (
     <div id="mainPage" className="mainPage">
       <div className="topRow">
@@ -207,6 +255,15 @@ function MainPage(props) {
           <button onClick={() => horizontalFlip()}>Horizontal Flip</button>
           <button onClick={() => verticalFlip()}>vertical Flip</button>
         </div>
+      </div>
+      <div className="imageUpload">
+        <ImageUploader
+          withIcon={true}
+          buttonText="Choose images"
+          onChange={onUpload}
+          imgExtension={[".jpg", ".gif", ".png", ".gif"]}
+        />
+        {/* <img ref={imageElm} src={image} alt="" srcset="" /> */}
       </div>
     </div>
   );

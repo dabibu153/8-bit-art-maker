@@ -13,9 +13,11 @@
     "react-color": "^2.18.1",
     "react-component-export-image": "^0.1.7",
     "react-dom": "^16.13.1",
+    "react-images-upload": "^1.2.8",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "3.4.3"
+    "react-scripts": "3.4.3",
+    "resize-image": "^0.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
