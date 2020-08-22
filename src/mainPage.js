@@ -5,8 +5,6 @@ import { CirclePicker, BlockPicker } from "react-color";
 import axios from "axios";
 import domtoimage from "dom-to-image";
 import { saveAs } from "file-saver";
-import ImageUploader from "react-images-upload";
-import { resize } from "resize-image";
 
 function MainPage(props) {
   const makeGrid = (size) => {
@@ -19,8 +17,6 @@ function MainPage(props) {
   const [color, setColor] = useState("#61daf9");
   const [userName, setUserName] = useState("");
   const [canvasList, setcanvasList] = useState([]);
-  const [image, setimage] = useState(null);
-  const imageElm = useRef(null);
 
   useEffect(() => {
     refreshData();
@@ -111,9 +107,6 @@ function MainPage(props) {
     });
   };
 
-  useEffect(() => {
-    console.log(image);
-  }, [image]);
   const handleCanvasDownload = () => {
     if (!canvasDom.current) {
       return 0;
@@ -126,48 +119,82 @@ function MainPage(props) {
   };
 
   const canvasDom = useRef(null);
-  const onUpload = (picture) => {
-    setimage(picture[0]);
+
+  function rgbToHex(r, g, b) {
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  let rotateClockwiseExtra = (grid1) => {
+    let new_grid = [...grid1];
+    for (let i = 0; i < new_grid.length; i++) {
+      for (let j = i + 0; j < new_grid[i].length; j++) {
+        let temp = new_grid[i][j];
+        new_grid[i][j] = new_grid[j][i];
+        new_grid[j][i] = temp;
+      }
+    }
+    let new_new_grid = [...new_grid].reverse();
+    return new_new_grid;
+  };
+
+  let horizontalFlipExtra = (grid2) => {
+    let new_grid = [...grid2];
+    for (let i = 0; i < 15; i++) {
+      for (let j = 0; j < new_grid[i].length; j++) {
+        let temp = new_grid[i][j];
+        new_grid[i][j] = new_grid[new_grid.length - 1 - i][j];
+        new_grid[new_grid.length - 1 - i][j] = temp;
+      }
+    }
+    return new_grid;
+  };
+
+  const onUpload = (e) => {
+    const files = e.target.files;
+    console.log(e.target.files);
+    if (FileReader && files && files.length) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        let imageElm = document.createElement("img");
+        imageElm.src = fr.result;
+        imageElm.onload = (e) => {
+          console.log("img loadeded");
+          const img = e.target;
+          var canvas = document.createElement("canvas");
+          canvas.width = 30;
+          canvas.height = 30;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, 30, 30);
+          const pixelData = ctx.getImageData(0, 0, 30, 30).data;
+
+          let newCanvasData = [];
+          for (let index = 0; index < pixelData.length; index += 4) {
+            let r = pixelData[index];
+            let g = pixelData[index + 1];
+            let b = pixelData[index + 2];
+
+            newCanvasData.push(rgbToHex(r, g, b));
+          }
+          console.log(newCanvasData);
+
+          let newCanvas = Array(30)
+            .fill("")
+            .map((e, i) => {
+              return newCanvasData.slice(i * 30, i * 30 + 30);
+            });
+          console.log("newcanvas", newCanvas);
+
+          setGrid(horizontalFlipExtra(rotateClockwiseExtra(newCanvas)));
+
+          console.log(pixelData);
+        };
+      };
+      fr.readAsDataURL(files[0]);
+    }
+    // setimage(picture[0]);
     // setimage(URL.createObjectURL(picture[0]));
   };
 
-  useEffect(() => {
-    if (imageElm && image) {
-      var file = image;
-      debugger;
-      var img = document.createElement("img");
-      var reader = new FileReader();
-      reader.onload = function (e) {
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-      var canvas = document.createElement("canvas");
-      var ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-
-      var MAX_WIDTH = 30;
-      var MAX_HEIGHT = 30;
-      var width = img.width;
-      var height = img.height;
-
-      if (width > height) {
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-        }
-      } else {
-        if (height > MAX_HEIGHT) {
-          width *= MAX_HEIGHT / height;
-          height = MAX_HEIGHT;
-        }
-      }
-      canvas.width = width;
-      canvas.height = height;
-      ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
-      console.log(ctx);
-    }
-  }, [image, imageElm]);
   return (
     <div id="mainPage" className="mainPage">
       <div className="topRow">
@@ -257,13 +284,9 @@ function MainPage(props) {
         </div>
       </div>
       <div className="imageUpload">
-        <ImageUploader
-          withIcon={true}
-          buttonText="Choose images"
-          onChange={onUpload}
-          imgExtension={[".jpg", ".gif", ".png", ".gif"]}
-        />
-        {/* <img ref={imageElm} src={image} alt="" srcset="" /> */}
+        <div>
+          <input type="file" onChange={onUpload} />
+        </div>
       </div>
     </div>
   );
