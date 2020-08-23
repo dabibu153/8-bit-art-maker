@@ -5,8 +5,17 @@ import { CirclePicker, BlockPicker } from "react-color";
 import axios from "axios";
 import domtoimage from "dom-to-image";
 import { saveAs } from "file-saver";
+import { useCopy } from "./customhook/custom";
+import {
+  AiOutlineRotateLeft,
+  AiOutlineRotateRight,
+  AiOutlineDownload,
+} from "react-icons/ai";
+import { CgEditFlipH, CgEditFlipV } from "react-icons/cg";
+import { MdGridOn, MdGridOff } from "react-icons/md";
 
 function MainPage(props) {
+  console.log("props", props);
   const makeGrid = (size) => {
     return Array(size)
       .fill()
@@ -22,6 +31,7 @@ function MainPage(props) {
   const [message, setmessage] = useState("_");
   const [thatDudesCanvas, setthatDudesCanvas] = useState("");
   const [canvasLink, setcanvasLink] = useState("");
+  const [margin, setmargin] = useState(false);
 
   useEffect(() => {
     refreshData();
@@ -126,6 +136,7 @@ function MainPage(props) {
   };
 
   const handleCanvasDownload = () => {
+    debugger;
     if (!canvasDom.current) {
       return 0;
     }
@@ -209,6 +220,7 @@ function MainPage(props) {
       fr.readAsDataURL(files[0]);
     }
   };
+  const [copied, copy, reset] = useCopy(canvasLink);
 
   const handleLinkShare = async (e) => {
     let data = { sentCanvasShare: [...canvasList[e.target.value]] };
@@ -216,12 +228,14 @@ function MainPage(props) {
       .post("http://localhost:5000/api/canvasShare", data)
       .then((res) => {
         console.log(res.data);
-        setcanvasLink(res.data._id);
+        setcanvasLink(`http://${window.location.host}/preview/${res.data._id}`);
       });
   };
 
   useEffect(() => {
-    setmessage(`copy this and share to distribute your art :- ${canvasLink}`);
+    console.log(canvasLink);
+
+    copy();
   }, [canvasLink]);
 
   const handlethatDudesCanvas = () => {
@@ -274,16 +288,14 @@ function MainPage(props) {
             </div>
           </div>
           <div className="saveandDownloadCanvas">
-            <p className="ccpth extra">save/download your creation </p>
-            <div className="saveDwnloadButtons">
+            <p className="ccpth extra">save your creation </p>
+            <div className="saveDwnlodButtons">
               <input
                 type="text"
                 value={tobeSavedName}
                 onChange={(e) => settobeSavedName(e.target.value)}
               ></input>
               <button onClick={(e) => handleCanvasSave(e)}>SAVE!</button>
-
-              <button onClick={() => handleCanvasDownload()}>DOWNLOAD!</button>
             </div>
           </div>
         </div>
@@ -306,19 +318,51 @@ function MainPage(props) {
             />
           </div>
         </div>
-        <div ref={canvasDom} className="secondColumn">
-          <Grid grid={grid} update={update} />
+        <div className="secondColumn">
+          <div className={!margin && "nomargin"} ref={canvasDom}>
+            <Grid grid={grid} updamarginte={update} />
+          </div>
+          <div className="canvasEdits">
+            <button
+              className="canvaseditbuttons"
+              onClick={() => rotateAntiClockwise()}
+            >
+              <AiOutlineRotateLeft />
+            </button>
+            <button
+              className="canvaseditbuttons"
+              onClick={() => rotateClockwise()}
+            >
+              <AiOutlineRotateRight />
+            </button>
+            <button
+              className="canvaseditbuttons"
+              onClick={() => horizontalFlip()}
+            >
+              <CgEditFlipH />
+            </button>
+            <button
+              className="canvaseditbuttons"
+              onClick={() => verticalFlip()}
+            >
+              <CgEditFlipV />
+            </button>
+            <button
+              className="canvaseditbuttons"
+              onClick={() => handleCanvasDownload()}
+            >
+              <AiOutlineDownload />
+            </button>
+            <button
+              className="canvaseditbuttons"
+              onClick={() => setmargin(!margin)}
+            >
+              {margin ? <MdGridOff /> : <MdGridOn />}
+            </button>
+          </div>
         </div>
       </div>
       <div className="bottomContent">
-        <div className="canvasEdits">
-          <p className="ccpth extra">mess around with the canvas : </p>
-
-          <button onClick={() => rotateAntiClockwise()}>Anticlockwise</button>
-          <button onClick={() => rotateClockwise()}>clockwise</button>
-          <button onClick={() => horizontalFlip()}>Horizontal Flip</button>
-          <button onClick={() => verticalFlip()}>vertical Flip</button>
-        </div>
         <div className="thatDudesCanvas">
           <input
             type="text"
