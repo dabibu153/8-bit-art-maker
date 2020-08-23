@@ -22,11 +22,22 @@ export default function Landing(props) {
     });
   };
   return (
-    <div>
+    <div className="landingMain">
       {toMainPage ? <Redirect to={`/mainPage/${userName}`} /> : null}
+      <div className="headingtop2">~~8-bit-art~~</div>
+      <div className="landingInst">
+        <ul>
+          <li>Login/signUp here with a unique UserName</li>
+          <br></br>
+          <li>You can save/download/share your canvas</li>
+          <br></br>
+          <li>You can generate a pixel art from any image</li>
+        </ul>
+      </div>
       <form>
-        <label>username</label>
+        <label className="label2">username</label>
         <input
+          className="userLogin"
           placeholder="your special name"
           value={userName}
           onChange={(e) => setuserName(e.target.value)}
@@ -34,7 +45,9 @@ export default function Landing(props) {
           min={6}
         ></input>
       </form>
-      <button onClick={() => handleSignIn()}>submit</button>
+      <button className="loginsubmit" onClick={() => handleSignIn()}>
+        submit
+      </button>
       <div className="message">{message}</div>
     </div>
   );

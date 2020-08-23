@@ -13,10 +13,15 @@ function MainPage(props) {
       .map((_) => Array(size).fill("#61daf9"));
   };
 
-  const [grid, setGrid] = useState(makeGrid(30));
+  const [grid, setGrid] = useState(makeGrid(40));
   const [color, setColor] = useState("#61daf9");
   const [userName, setUserName] = useState("");
   const [canvasList, setcanvasList] = useState([]);
+  const [canvasListName, setcanvasListName] = useState([]);
+  const [tobeSavedName, settobeSavedName] = useState("");
+  const [message, setmessage] = useState("_");
+  const [thatDudesCanvas, setthatDudesCanvas] = useState("");
+  const [canvasLink, setcanvasLink] = useState("");
 
   useEffect(() => {
     refreshData();
@@ -28,6 +33,7 @@ function MainPage(props) {
       console.log("incoming user", res.data);
       setUserName(res.data.userName);
       setcanvasList([...res.data.canvas]);
+      setcanvasListName([...res.data.canvasName]);
     });
   };
 
@@ -66,7 +72,7 @@ function MainPage(props) {
 
   let horizontalFlip = () => {
     let new_grid = [...grid];
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 20; i++) {
       for (let j = 0; j < new_grid[i].length; j++) {
         let temp = new_grid[i][j];
         new_grid[i][j] = new_grid[new_grid.length - 1 - i][j];
@@ -79,7 +85,7 @@ function MainPage(props) {
   let verticalFlip = () => {
     let new_grid = [...grid];
     for (let i = 0; i < new_grid.length; i++) {
-      for (let j = 0; j < 15; j++) {
+      for (let j = 0; j < 20; j++) {
         let temp = new_grid[i][j];
         new_grid[i][j] = new_grid[i][new_grid.length - 1 - j];
         new_grid[i][new_grid.length - 1 - j] = temp;
@@ -89,9 +95,9 @@ function MainPage(props) {
   };
 
   let setCanvasColor = (color) => {
-    let fresh_canvas = Array(30)
+    let fresh_canvas = Array(40)
       .fill()
-      .map((_) => Array(30).fill(color));
+      .map((_) => Array(40).fill(color));
 
     setGrid([...fresh_canvas]);
   };
@@ -100,10 +106,22 @@ function MainPage(props) {
     setGrid([...canvasList[e.target.value]]);
   };
 
-  const handleCanvasSave = () => {
-    let data = { userName: userName, sentCanvas: grid };
+  const handleCanvasSave = (e) => {
+    e.preventDefault();
+
+    if (tobeSavedName === "") {
+      setmessage("please enter canvas name before saving");
+      return;
+    }
+    let data = {
+      userName: userName,
+      sentCanvas: grid,
+      sentCanvasName: tobeSavedName,
+    };
     axios.put("http://localhost:5000/api/canvasSave", data).then((res) => {
       refreshData();
+      setmessage("_");
+      settobeSavedName("");
     });
   };
 
@@ -113,7 +131,6 @@ function MainPage(props) {
     }
     var node = canvasDom.current;
     domtoimage.toBlob(node).then(function (blob) {
-      // save img
       saveAs(blob, "canvas.png");
     });
   };
@@ -139,7 +156,7 @@ function MainPage(props) {
 
   let horizontalFlipExtra = (grid2) => {
     let new_grid = [...grid2];
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 20; i++) {
       for (let j = 0; j < new_grid[i].length; j++) {
         let temp = new_grid[i][j];
         new_grid[i][j] = new_grid[new_grid.length - 1 - i][j];
@@ -161,11 +178,11 @@ function MainPage(props) {
           console.log("img loadeded");
           const img = e.target;
           var canvas = document.createElement("canvas");
-          canvas.width = 30;
-          canvas.height = 30;
+          canvas.width = 40;
+          canvas.height = 40;
           const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, 30, 30);
-          const pixelData = ctx.getImageData(0, 0, 30, 30).data;
+          ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, 40, 40);
+          const pixelData = ctx.getImageData(0, 0, 40, 40).data;
 
           let newCanvasData = [];
           for (let index = 0; index < pixelData.length; index += 4) {
@@ -177,10 +194,10 @@ function MainPage(props) {
           }
           console.log(newCanvasData);
 
-          let newCanvas = Array(30)
+          let newCanvas = Array(40)
             .fill("")
             .map((e, i) => {
-              return newCanvasData.slice(i * 30, i * 30 + 30);
+              return newCanvasData.slice(i * 40, i * 40 + 40);
             });
           console.log("newcanvas", newCanvas);
 
@@ -191,8 +208,28 @@ function MainPage(props) {
       };
       fr.readAsDataURL(files[0]);
     }
-    // setimage(picture[0]);
-    // setimage(URL.createObjectURL(picture[0]));
+  };
+
+  const handleLinkShare = async (e) => {
+    let data = { sentCanvasShare: [...canvasList[e.target.value]] };
+    await axios
+      .post("http://localhost:5000/api/canvasShare", data)
+      .then((res) => {
+        console.log(res.data);
+        setcanvasLink(res.data._id);
+      });
+  };
+
+  useEffect(() => {
+    setmessage(`copy this and share to distribute your art :- ${canvasLink}`);
+  }, [canvasLink]);
+
+  const handlethatDudesCanvas = () => {
+    let data = { canvasId: thatDudesCanvas };
+    axios.post("http://localhost:5000/api/canvasGet", data).then((res) => {
+      console.log(res.data);
+      setGrid([...res.data.canvas]);
+    });
   };
 
   return (
@@ -200,58 +237,14 @@ function MainPage(props) {
       <div className="topRow">
         <div className="headingtop">---hello there---</div>
         <div className="headingbottom">{userName}</div>
+        <div className="headingbottom2">{message}</div>
       </div>
       <div className="middleRow">
-        <div className="firstColumn">
-          <div className="canvasColorPicker">
-            <p className="ccpth">
-              Use this to choose base color for your canvas
-            </p>
-            <BlockPicker
-              color={color}
-              onChange={(color) => setCanvasColor(color.hex)}
-            />
-            <p className="ccpth">warning: using this WILL reset your canvas</p>
-          </div>
-          <div className="colorpicker">
-            <p className="ccpth">
-              Use this to choose the color u want to paint with
-            </p>
-            <CirclePicker
-              color={color}
-              onChangeComplete={(color) => setColor(color.hex)}
-            />
-            <p className="ccpth">and no, this one doesn't reset your canvas</p>
-          </div>
-        </div>
-        <div ref={canvasDom} className="secondColumn">
-          <Grid grid={grid} update={update} />
-        </div>
         <div className="thirdColumn">
-          <div className="preDefinedDesigns">
-            <p className="ccpth">PRE-made designs for u to use</p>
-            <ul>
-              <li>
-                <button>Design 1</button>
-              </li>
-              <li>
-                <button>Design 2</button>
-              </li>
-              <li>
-                <button>Design 3</button>
-              </li>
-              <li>
-                <button>Design 4</button>
-              </li>
-              <li>
-                <button>Design 5</button>
-              </li>
-            </ul>
-          </div>
           <div className="userDefinedDesigns">
             <p className="ccpth">here is the stuff you Saved !</p>
             <ul>
-              {canvasList.map((canvasData, index) => (
+              {canvasListName.map((canvasData, index) => (
                 <li>
                   <button
                     value={index}
@@ -259,21 +252,65 @@ function MainPage(props) {
                       handleUserDefinedCanvas(e);
                     }}
                   >
-                    saved Design {index + 1}
+                    {canvasData}
+                  </button>
+                  <button
+                    className="shareButton"
+                    value={index}
+                    onClick={(e) => handleLinkShare(e)}
+                  >
+                    SHARE!
                   </button>
                 </li>
               ))}
             </ul>
           </div>
+          <div className="imageUpload">
+            <div>
+              <input type="file" onChange={onUpload} title="aaa" id="file1" />
+              <div className="label1">
+                <label htmlFor="file1">upload</label>
+              </div>
+            </div>
+          </div>
+          <div className="saveandDownloadCanvas">
+            <p className="ccpth extra">save/download your creation </p>
+            <div className="saveDwnloadButtons">
+              <input
+                type="text"
+                value={tobeSavedName}
+                onChange={(e) => settobeSavedName(e.target.value)}
+              ></input>
+              <button onClick={(e) => handleCanvasSave(e)}>SAVE!</button>
+
+              <button onClick={() => handleCanvasDownload()}>DOWNLOAD!</button>
+            </div>
+          </div>
+        </div>
+        <div className="firstColumn">
+          <div className="canvasColorPicker">
+            <p className="ccpth">Choose base color for your canvas</p>
+            <BlockPicker
+              color={color}
+              onChange={(color) => setCanvasColor(color.hex)}
+            />
+            <p className="ccpth" style={{ color: "#ff6347" }}>
+              warning: this WILL reset your canvas
+            </p>
+          </div>
+          <div className="colorpicker">
+            <p className="ccpth">Choose the color u want to paint with</p>
+            <CirclePicker
+              color={color}
+              onChangeComplete={(color) => setColor(color.hex)}
+            />
+          </div>
+        </div>
+        <div ref={canvasDom} className="secondColumn">
+          <Grid grid={grid} update={update} />
         </div>
       </div>
       <div className="bottomContent">
-        <div className="saveandDownloadCanvas">
-          <p className="ccpth extra">save and download your creation : </p>
-
-          <button onClick={() => handleCanvasSave()}>SAVE!</button>
-          <button onClick={() => handleCanvasDownload()}>DOWNLOAD!</button>
-        </div>
         <div className="canvasEdits">
           <p className="ccpth extra">mess around with the canvas : </p>
 
@@ -282,10 +319,13 @@ function MainPage(props) {
           <button onClick={() => horizontalFlip()}>Horizontal Flip</button>
           <button onClick={() => verticalFlip()}>vertical Flip</button>
         </div>
-      </div>
-      <div className="imageUpload">
-        <div>
-          <input type="file" onChange={onUpload} />
+        <div className="thatDudesCanvas">
+          <input
+            type="text"
+            value={thatDudesCanvas}
+            onChange={(e) => setthatDudesCanvas(e.target.value)}
+          ></input>
+          <button onClick={handlethatDudesCanvas}>Get Canves</button>
         </div>
       </div>
     </div>
