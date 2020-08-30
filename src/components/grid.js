@@ -8,6 +8,7 @@ export default function Grid(props) {
       className="grid1"
       onMouseDown={() => setDragging(true)}
       onMouseUp={() => setDragging(false)}
+      style={{ background: props.bg_col }}
     >
       {props.grid.map((row, index) => (
         <Rows

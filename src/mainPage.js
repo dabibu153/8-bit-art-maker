@@ -1,7 +1,10 @@
 import React, { useRef } from "react";
 import Grid from "./components/grid";
 import { useState, useEffect } from "react";
-import { CirclePicker, BlockPicker } from "react-color";
+// AlphaPicker BlockPicker ChromePicker CirclePicker CompactPicker
+// GithubPicker HuePicker MaterialPicker PhotoshopPicker
+// SketchPicker SliderPicker SwatchesPicker TwitterPicker
+import { SketchPicker, BlockPicker, ChromePicker } from "react-color";
 import axios from "axios";
 import domtoimage from "dom-to-image";
 import { saveAs } from "file-saver";
@@ -15,20 +18,20 @@ import { CgEditFlipH, CgEditFlipV } from "react-icons/cg";
 import { MdGridOn, MdGridOff } from "react-icons/md";
 
 function MainPage(props) {
-  console.log("props", props);
   const makeGrid = (size) => {
     return Array(size)
       .fill()
-      .map((_) => Array(size).fill("#61daf9"));
+      .map((_) => Array(size).fill(""));
   };
 
   const [grid, setGrid] = useState(makeGrid(40));
-  const [color, setColor] = useState("#61daf9");
+  const [color, setColor] = useState("#FF0000");
   const [userName, setUserName] = useState("");
   const [canvasList, setcanvasList] = useState([]);
   const [canvasListName, setcanvasListName] = useState([]);
+  const [bgcolor, setbgcolor] = useState([]);
   const [tobeSavedName, settobeSavedName] = useState("");
-  const [message, setmessage] = useState("_");
+  const [message, setmessage] = useState("");
   const [thatDudesCanvas, setthatDudesCanvas] = useState("");
   const [canvasLink, setcanvasLink] = useState("");
   const [margin, setmargin] = useState(false);
@@ -44,6 +47,7 @@ function MainPage(props) {
       setUserName(res.data.userName);
       setcanvasList([...res.data.canvas]);
       setcanvasListName([...res.data.canvasName]);
+      setbgcolor([...res.data.bgcolor]);
     });
   };
 
@@ -104,13 +108,14 @@ function MainPage(props) {
     setGrid(new_grid);
   };
 
-  let setCanvasColor = (color) => {
-    let fresh_canvas = Array(40)
-      .fill()
-      .map((_) => Array(40).fill(color));
+  const [canvasColor, setCanvasColor] = useState("#61daf9");
+  // let setCanvasColor = (color) => {
+  //   let fresh_canvas = Array(40)
+  //     .fill()
+  //     .map((_) => Array(40).fill(color));
 
-    setGrid([...fresh_canvas]);
-  };
+  //   setGrid([...fresh_canvas]);
+  // };
 
   const handleUserDefinedCanvas = (e) => {
     setGrid([...canvasList[e.target.value]]);
@@ -127,6 +132,7 @@ function MainPage(props) {
       userName: userName,
       sentCanvas: grid,
       sentCanvasName: tobeSavedName,
+      bgcolor: canvasColor,
     };
     axios.put("http://localhost:5000/api/canvasSave", data).then((res) => {
       refreshData();
@@ -136,7 +142,6 @@ function MainPage(props) {
   };
 
   const handleCanvasDownload = () => {
-    debugger;
     if (!canvasDom.current) {
       return 0;
     }
@@ -223,7 +228,12 @@ function MainPage(props) {
   const [copied, copy, reset] = useCopy(canvasLink);
 
   const handleLinkShare = async (e) => {
-    let data = { sentCanvasShare: [...canvasList[e.target.value]] };
+    console.log(bgcolor);
+
+    let data = {
+      sentCanvasShare: [...canvasList[e.target.value]],
+      bgcolor: bgcolor[e.target.value],
+    };
     await axios
       .post("http://localhost:5000/api/canvasShare", data)
       .then((res) => {
@@ -234,7 +244,6 @@ function MainPage(props) {
 
   useEffect(() => {
     console.log(canvasLink);
-
     copy();
   }, [canvasLink]);
 
@@ -247,20 +256,113 @@ function MainPage(props) {
   };
 
   return (
-    <div id="mainPage" className="mainPage">
-      <div className="topRow">
-        <div className="headingtop">---hello there---</div>
-        <div className="headingbottom">{userName}</div>
-        <div className="headingbottom2">{message}</div>
+    <div id="mainPage" className="mainPage py-3">
+      <div className="row flex-column mb-5">
+        <header className="m-auto h2 text-center d-block">
+          Hi, {userName}
+        </header>
+        <span className="m-auto headingbottom2 text-muted">{message}</span>
       </div>
-      <div className="middleRow">
-        <div className="thirdColumn">
-          <div className="userDefinedDesigns">
-            <p className="ccpth">here is the stuff you Saved !</p>
+
+      <div className="row">
+        <div className="col-4 d-flex flex-row p-3 border border-dark rounded justify-content-center align-items-center">
+          <div className="mb-3  mr-2 d-flex flex-column">
+            <p className="ccpth nowrap">Bg Color</p>
+            <div className="color-picker">
+              <ChromePicker
+                width="200px"
+                disableAlpha={true}
+                color={canvasColor}
+                onChange={(color) => setCanvasColor(color.hex)}
+              />
+            </div>
+          </div>
+          <div className="mb-3 d-flex flex-column">
+            <p className="ccpth nowrap">Paint Color</p>
+            <div className="color-picker">
+              <ChromePicker
+                width="200px"
+                disableAlpha={true}
+                color={color}
+                onChange={(color) => setColor(color.hex)}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="col-4 px-2">
+          <div className="row  justify-content-around no-gutters mb-1">
+            <button
+              className="canvaseditbuttons rounded d-flex justify-content-center"
+              onClick={() => rotateAntiClockwise()}
+            >
+              <AiOutlineRotateLeft />
+            </button>
+            <button
+              className="canvaseditbuttons rounded d-flex justify-content-center"
+              onClick={() => rotateClockwise()}
+            >
+              <AiOutlineRotateRight />
+            </button>
+            <button
+              className="canvaseditbuttons rounded d-flex justify-content-center"
+              onClick={() => horizontalFlip()}
+            >
+              <CgEditFlipH />
+            </button>
+            <button
+              className="canvaseditbuttons rounded d-flex justify-content-center"
+              onClick={() => verticalFlip()}
+            >
+              <CgEditFlipV />
+            </button>
+            <button
+              className="canvaseditbuttons rounded d-flex justify-content-center"
+              onClick={() => handleCanvasDownload()}
+            >
+              <AiOutlineDownload />
+            </button>
+            <button
+              className="canvaseditbuttons rounded d-flex justify-content-center"
+              onClick={() => setmargin(!margin)}
+            >
+              {margin ? <MdGridOff /> : <MdGridOn />}
+            </button>
+          </div>
+
+          <div className="row  justify-content-center no-gutters">
+            <div className={`${!margin && "nomargin"}`} ref={canvasDom}>
+              <Grid grid={grid} update={update} bg_col={canvasColor} />
+            </div>
+          </div>
+        </div>
+
+        <div className="col-4 p-3 border border-dark rounded">
+          <div className="border border-dark rounded px-1 py-2">
+            <div className="form form-inline">
+              <input
+                className="mx-2 w-200"
+                placeholder="Share key.."
+                type="text"
+                value={thatDudesCanvas}
+                onChange={(e) => setthatDudesCanvas(e.target.value)}
+              ></input>
+              <button className="mx-2" onClick={handlethatDudesCanvas}>
+                Load!
+              </button>
+            </div>
+          </div>
+          <div className="border border-dark rounded px-1 py-2 mt-2">
+            <p className="ccpth">Your saved Art!</p>
+            {canvasListName?.length === 0 && (
+              <span className="text-muted text-small small text-center d-block">
+                No Art saved yet :({" "}
+              </span>
+            )}
             <ul>
               {canvasListName.map((canvasData, index) => (
                 <li>
                   <button
+                    className="mx-2 w-200"
                     value={index}
                     onClick={(e) => {
                       handleUserDefinedCanvas(e);
@@ -269,7 +371,7 @@ function MainPage(props) {
                     {canvasData}
                   </button>
                   <button
-                    className="shareButton"
+                    className="shareButton mx-2"
                     value={index}
                     onClick={(e) => handleLinkShare(e)}
                   >
@@ -279,97 +381,30 @@ function MainPage(props) {
               ))}
             </ul>
           </div>
-          <div className="imageUpload">
-            <div>
-              <input type="file" onChange={onUpload} title="aaa" id="file1" />
-              <div className="label1">
-                <label htmlFor="file1">upload</label>
-              </div>
+          <div className="border border-dark rounded p-3 mt-2 ">
+            <p className="ccpth">Convert Image to 8-bit!</p>
+
+            <input type="file" onChange={onUpload} title="aaa" id="file1" />
+            <div className="label1">
+              <label htmlFor="file1" className="btn m-0 w-100">
+                Upload Image
+              </label>
             </div>
           </div>
-          <div className="saveandDownloadCanvas">
-            <p className="ccpth extra">save your creation </p>
-            <div className="saveDwnlodButtons">
+          <div className="border border-dark rounded p-3 mt-2">
+            <div className="form form-inline">
               <input
+                className="w-200 mx-2"
+                placeholder="Art name!"
                 type="text"
                 value={tobeSavedName}
                 onChange={(e) => settobeSavedName(e.target.value)}
               ></input>
-              <button onClick={(e) => handleCanvasSave(e)}>SAVE!</button>
+              <button className="mx-2" onClick={(e) => handleCanvasSave(e)}>
+                Save!
+              </button>
             </div>
           </div>
-        </div>
-        <div className="firstColumn">
-          <div className="canvasColorPicker">
-            <p className="ccpth">Choose base color for your canvas</p>
-            <BlockPicker
-              color={color}
-              onChange={(color) => setCanvasColor(color.hex)}
-            />
-            <p className="ccpth" style={{ color: "#ff6347" }}>
-              warning: this WILL reset your canvas
-            </p>
-          </div>
-          <div className="colorpicker">
-            <p className="ccpth">Choose the color u want to paint with</p>
-            <CirclePicker
-              color={color}
-              onChangeComplete={(color) => setColor(color.hex)}
-            />
-          </div>
-        </div>
-        <div className="secondColumn">
-          <div className={!margin && "nomargin"} ref={canvasDom}>
-            <Grid grid={grid} updamarginte={update} />
-          </div>
-          <div className="canvasEdits">
-            <button
-              className="canvaseditbuttons"
-              onClick={() => rotateAntiClockwise()}
-            >
-              <AiOutlineRotateLeft />
-            </button>
-            <button
-              className="canvaseditbuttons"
-              onClick={() => rotateClockwise()}
-            >
-              <AiOutlineRotateRight />
-            </button>
-            <button
-              className="canvaseditbuttons"
-              onClick={() => horizontalFlip()}
-            >
-              <CgEditFlipH />
-            </button>
-            <button
-              className="canvaseditbuttons"
-              onClick={() => verticalFlip()}
-            >
-              <CgEditFlipV />
-            </button>
-            <button
-              className="canvaseditbuttons"
-              onClick={() => handleCanvasDownload()}
-            >
-              <AiOutlineDownload />
-            </button>
-            <button
-              className="canvaseditbuttons"
-              onClick={() => setmargin(!margin)}
-            >
-              {margin ? <MdGridOff /> : <MdGridOn />}
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="bottomContent">
-        <div className="thatDudesCanvas">
-          <input
-            type="text"
-            value={thatDudesCanvas}
-            onChange={(e) => setthatDudesCanvas(e.target.value)}
-          ></input>
-          <button onClick={handlethatDudesCanvas}>Get Canves</button>
         </div>
       </div>
     </div>

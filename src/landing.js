@@ -8,6 +8,10 @@ export default function Landing(props) {
   const [toMainPage, setToMainPage] = useState(false);
 
   const handleSignIn = () => {
+    if (!userName) {
+      alert("Enter username first");
+      return;
+    }
     let data = { userName: userName };
 
     axios.post("http://localhost:5000/api/userName", data).then((res) => {
@@ -24,30 +28,40 @@ export default function Landing(props) {
   return (
     <div className="landingMain">
       {toMainPage ? <Redirect to={`/mainPage/${userName}`} /> : null}
-      <div className="headingtop2">~~8-bit-art~~</div>
-      <div className="landingInst">
-        <ul>
-          <li>Login/signUp here with a unique UserName</li>
-          <br></br>
-          <li>You can save/download/share your canvas</li>
-          <br></br>
-          <li>You can generate a pixel art from any image</li>
-        </ul>
+      <div className="container my-5 pt-2 text-center">
+        <h2 className="heading">{"[ 8-bit-art-generator ]"}</h2>
       </div>
-      <form>
-        <label className="label2">username</label>
+      <div className="landingInst border border-dark rounded p-2 bg-light">
+        <span className="d-block px-2 my-3">
+          <span className="text-danger pr-2"> 1&gt;</span>Login/Sign Up here
+          with a unique name.
+        </span>
+        <span className="d-block px-2 my-3">
+          <span className="text-danger pr-2"> 2&gt;</span>Generate pixel art
+          from scratch.
+        </span>
+        <span className="d-block px-2 my-3">
+          <span className="text-danger pr-2"> 3&gt;</span>Or convert an image to
+          pixel art.
+        </span>
+        <span className="d-block px-2 my-3">
+          <span className="text-danger pr-2"> 4&gt;</span>Share/Download your
+          pixel art.
+        </span>
+      </div>
+      <div className="form form-inline">
         <input
-          className="userLogin"
-          placeholder="your special name"
+          className="rounded mx-2 w-200 px-2"
+          placeholder="Username"
           value={userName}
           onChange={(e) => setuserName(e.target.value)}
           type="text"
           min={6}
         ></input>
-      </form>
-      <button className="loginsubmit" onClick={() => handleSignIn()}>
-        submit
-      </button>
+        <button className="rounded mx-2" onClick={() => handleSignIn()}>
+          Log in
+        </button>
+      </div>
       <div className="message">{message}</div>
     </div>
   );
