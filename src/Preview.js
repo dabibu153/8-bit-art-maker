@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Grid from "./components/grid";
 import Axios from "axios";
+let api2 = process.env.REACT_APP_BACKEND_URL;
 
 const Preview = (props) => {
   const [grid, setGrid] = useState([]);
@@ -8,7 +9,7 @@ const Preview = (props) => {
 
   useEffect(() => {
     let data = { canvasId: props.match.params.id };
-    Axios.post("http://localhost:5000/api/canvasGet", data).then((res) => {
+    Axios.post(`${api2}/api/canvasGet`, data).then((res) => {
       console.log(res.data);
       setGrid([...res.data.canvas]);
       setbgcolor(res.data.bgcolor);

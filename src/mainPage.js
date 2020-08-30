@@ -17,6 +17,8 @@ import {
 import { CgEditFlipH, CgEditFlipV } from "react-icons/cg";
 import { MdGridOn, MdGridOff } from "react-icons/md";
 
+let api1 = process.env.REACT_APP_BACKEND_URL;
+
 function MainPage(props) {
   const makeGrid = (size) => {
     return Array(size)
@@ -42,7 +44,7 @@ function MainPage(props) {
 
   const refreshData = () => {
     let data = { userName: props.match.params.userName };
-    axios.post("http://localhost:5000/api/userData", data).then((res) => {
+    axios.post(`${api1}/api/userData`, data).then((res) => {
       console.log("incoming user", res.data);
       setUserName(res.data.userName);
       setcanvasList([...res.data.canvas]);
@@ -134,7 +136,7 @@ function MainPage(props) {
       sentCanvasName: tobeSavedName,
       bgcolor: canvasColor,
     };
-    axios.put("http://localhost:5000/api/canvasSave", data).then((res) => {
+    axios.put(`${api1}/api/canvasSave`, data).then((res) => {
       refreshData();
       setmessage("_");
       settobeSavedName("");
@@ -234,12 +236,10 @@ function MainPage(props) {
       sentCanvasShare: [...canvasList[e.target.value]],
       bgcolor: bgcolor[e.target.value],
     };
-    await axios
-      .post("http://localhost:5000/api/canvasShare", data)
-      .then((res) => {
-        console.log(res.data);
-        setcanvasLink(`http://${window.location.host}/preview/${res.data._id}`);
-      });
+    await axios.post(`${api1}/api/canvasShare`, data).then((res) => {
+      console.log(res.data);
+      setcanvasLink(`http://${window.location.host}/preview/${res.data._id}`);
+    });
   };
 
   useEffect(() => {
@@ -249,7 +249,7 @@ function MainPage(props) {
 
   const handlethatDudesCanvas = () => {
     let data = { canvasId: thatDudesCanvas };
-    axios.post("http://localhost:5000/api/canvasGet", data).then((res) => {
+    axios.post(`${api1}/api/canvasGet`, data).then((res) => {
       console.log(res.data);
       setGrid([...res.data.canvas]);
     });
